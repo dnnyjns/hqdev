@@ -15,10 +15,10 @@ import (
 )
 
 type (
-	// Restore represents a restore command
+	// Restore includes logic to restore a db from s3 or your home directory
 	Restore struct {
 		bucket       string
-		command      *cobra.Command
+		cmd          *cobra.Command
 		extract      int
 		prefix       string
 		remote       bool
@@ -27,13 +27,12 @@ type (
 )
 
 func generateRestoreCommand() *cobra.Command {
-	return Restore{}.Command()
+	return Restore{}.command()
 }
 
-// Command builds the default cobra command for restoration
-func (r Restore) Command() *cobra.Command {
-	if r.command == nil {
-		command := &cobra.Command{
+func (r Restore) command() *cobra.Command {
+	if r.cmd == nil {
+		cmd := &cobra.Command{
 			Use:   "restore",
 			Short: "Restore from an org extract",
 			Args:  cobra.MaximumNArgs(1),
@@ -59,14 +58,14 @@ func (r Restore) Command() *cobra.Command {
 			},
 		}
 
-		command.Flags().StringVarP(&r.bucket, "bucket", "b", "hqdatabase-tracker-production", "s3 bucket that contains org extracts")
-		command.Flags().StringVarP(&r.prefix, "prefix", "p", "agencieshq", "prefix of sql dump")
-		command.Flags().BoolVarP(&r.remote, "remote", "r", false, "restore extract from AWS")
-		command.Flags().StringVarP(&r.s3FilePrefix, "s3", "s", "agencieshq", "s3 prefix of sql dump")
+		cmd.Flags().StringVarP(&r.bucket, "bucket", "b", "hqdatabase-tracker-production", "s3 bucket that contains org extracts")
+		cmd.Flags().StringVarP(&r.prefix, "prefix", "p", "agencieshq", "prefix of sql dump")
+		cmd.Flags().BoolVarP(&r.remote, "remote", "r", false, "restore extract from AWS")
+		cmd.Flags().StringVarP(&r.s3FilePrefix, "s3", "s", "agencieshq", "s3 prefix of sql dump")
 
-		r.command = command
+		r.cmd = cmd
 	}
-	return r.command
+	return r.cmd
 }
 
 func (r Restore) database() string {
@@ -132,14 +131,6 @@ func (r Restore) downloadDump() error {
 		Credentials: credentials.NewStaticCredentials(RootConfig.AWSKey(), RootConfig.AWSSecretKey(), ""),
 	})
 
-	// Create the credentials from AssumeRoleProvider to assume the role
-	// referenced by the "myRoleARN" ARN.
-	// creds := stscreds.NewCredentials(sess, "myRoleArn")
-
-	// Create service client value configured for credentials
-	// from assumed role.
-	// s3.New(sess, &aws.Config{Credentials: creds})
-	// Create a downloader with the session and default options
 	downloader := s3manager.NewDownloader(sess)
 
 	// Create a file to write the S3 Object contents to.
