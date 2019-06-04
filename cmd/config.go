@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	configName = "cobra"
+	configName = ".cobra"
 	configType = "json"
 	fileName   = configName + "." + configType
 )
